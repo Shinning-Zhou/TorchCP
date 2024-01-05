@@ -51,14 +51,14 @@ class R2CCP(SplitPredictor):
         
         prediction_intervals = torch.zeros((N, 2 * (K - 1)), device=self._device)
         prediction_intervals[:, 0::2][mask1] = left_points[mask1]
-        prediction_intervals[:, 1::2][mask1] =right_points[mask1]
+        prediction_intervals[:, 1::2][mask1] = right_points[mask1]
         prediction_intervals[:, 0::2][mask2] = 0
         prediction_intervals[:, 1::2][mask2] = 0
 
-        delta_midpoints =right_points - left_points
-        prediction_intervals[:, 0::2][mask3] =right_points[mask3] - delta_midpoints[mask3] * \
+        delta_midpoints = right_points - left_points
+        prediction_intervals[:, 0::2][mask3] = right_points[mask3] - delta_midpoints[mask3] * \
             (right_predicts[mask3] - q_hat_expanded[mask3]) / (right_predicts[mask3] - left_predicts[mask3])
-        prediction_intervals[:, 1::2][mask3] =right_points[mask3]
+        prediction_intervals[:, 1::2][mask3] = right_points[mask3]
 
         prediction_intervals[:, 0::2][mask4] = left_points[mask4]
         prediction_intervals[:, 1::2][mask4] = left_points[mask4] - delta_midpoints[mask4] * \

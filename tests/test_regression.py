@@ -81,7 +81,7 @@ def test_SplitPredictor():
 
     model = build_regression_model("NonLinearNet_with_Softmax")(X.shape[1], K, 1000, 0).to(device)
     criterion = R2ccpLoss(p, tau, midpoints)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=0)
 
     for epoch in range(epochs):
         train(model, device, epoch, train_data_loader, criterion, optimizer)
@@ -132,7 +132,7 @@ def test_time_series():
     print(predictor.evaluate(test_data_loader))      
 
     ##################################
-    # Adaptive Conformal Inference,
+    # Adaptive Conformal Inference
     ##################################      
     print("########################## ACI ###########################")
     predictor = ACI(model, 0.005)
@@ -156,3 +156,5 @@ def test_time_series():
     print(f"Average_size: {metrics('average_size')(predicts)}")
 
 
+if __name__ == "__main__":
+    test_SplitPredictor()
