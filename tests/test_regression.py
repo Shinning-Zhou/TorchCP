@@ -154,7 +154,3 @@ def test_time_series():
     print("Evaluating prediction sets...")
     print(f"Coverage_rate: {metrics('coverage_rate')(predicts, test_y)}")
     print(f"Average_size: {metrics('average_size')(predicts)}")
-
-
-if __name__ == "__main__":
-    test_SplitPredictor()
