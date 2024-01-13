@@ -20,6 +20,7 @@ from torchcp.classification.utils import ConfCalibrator
 
 
 
+
 class TransformedDataset(Dataset):
     def __init__(self, dataset, transforms=None):
         self.dataset = dataset
@@ -60,37 +61,20 @@ def No_transform(img):
 
 pre_transforms = trn.Compose([trn.Resize(256, antialias=True),
                         trn.CenterCrop(224),
-                        trn.ToTensor(),
                         ])
                         
 post_transforms = trn.Compose([
+                        trn.ToTensor(),
                         trn.Normalize(mean=[0.485, 0.456, 0.406],
-                                    std=[0.229, 0.224, 0.225])
+                                    std=[0.229, 0.224, 0.225]),
                         ])
-  
-augmentation_methods = [
-    trn.Lambda(No_transform), # 不做变化
-    # geometric transformation
-    trn.RandomCrop(size=(224, 224)),  # 随机裁剪
-    trn.RandomHorizontalFlip(),  # 随机水平翻转
-    trn.RandomVerticalFlip(),  # 随机垂直翻转
-    trn.RandomResizedCrop(size=(224, 224), antialias=True),  # 随机裁剪和缩放
-    trn.RandomRotation(degrees=45),  # 随机旋转，角度范围为[-45, 45]
-    trn.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=10),  # 随机仿射变换
-    # color transformation
-    trn.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),  # 颜色扭曲
-    trn.RandomGrayscale(),  # 随机灰度化
-    trn.RandomPerspective(), # 随机透视
-    trn.ElasticTransform(), # 弹性变化
-    trn.RandomInvert(),
-    trn.RandomAutocontrast(), # 随机调整图像的对比度
-    trn.RandomAdjustSharpness(sharpness_factor=0.5), # 随机减少图像的锐度
-    trn.RandomAdjustSharpness(sharpness_factor=1.5), # 随机增加图像的锐度
-    trn.RandomEqualize(),
-    # pixel transformation
-    trn.RandomAutocontrast(),
-    trn.GaussianBlur(kernel_size=5), # 高斯模糊
-    trn.RandomErasing(),  # 随机擦除
+
+
+auto_augmentation_methods = [
+    trn.AutoAugment(),
+    trn.RandAugment(),
+    trn.TrivialAugmentWide(),
+    trn.AugMix(),
 ]
        
     
@@ -105,10 +89,11 @@ def test_imagenet(seed = 1, gpu = 0, csv_file_path = '/home/zhouxn/project/Torch
     model.to(device)
     dataset = dset.ImageFolder("/data/dataset/imagenet/images/val", pre_transforms)
     
-    cal_dataset, test_dataset, _, _, _ = torch.utils.data.random_split(dataset, [10000, 10000, 10000, 10000, 10000])
+    # cal_dataset, test_dataset, _, _, _ = torch.utils.data.random_split(dataset, [10000, 10000, 10000, 10000, 10000])
+    cal_dataset, test_dataset = torch.utils.data.random_split(dataset, [25000, 25000])
     
     test_dataset_aug = TransformedDataset(test_dataset, post_transforms)
-    test_data_loader = DataLoader(test_dataset_aug, batch_size=1024, shuffle=False, pin_memory=True)
+    test_data_loader = DataLoader(test_dataset_aug, batch_size=2048, shuffle=False, pin_memory=True)
     
     alpha = 0.1
     predictors = [SplitPredictor]
@@ -120,9 +105,9 @@ def test_imagenet(seed = 1, gpu = 0, csv_file_path = '/home/zhouxn/project/Torch
         csv_writer.writeheader()
         for score in score_functions:
             for class_predictor in predictors:
-                for augmentation_method in augmentation_methods:
+                for augmentation_method in auto_augmentation_methods:
                     cal_dataset_aug = TransformedDataset(cal_dataset, trn.Compose([augmentation_method, post_transforms]))
-                    cal_data_loader = DataLoader(cal_dataset_aug, batch_size=1024, shuffle=False, pin_memory=True)
+                    cal_data_loader = DataLoader(cal_dataset_aug, batch_size=2048, shuffle=False, pin_memory=True)
                     predictor = class_predictor(score, model)
                     predictor.calibrate(cal_data_loader, alpha)
                     
@@ -156,6 +141,6 @@ def test_imagenet(seed = 1, gpu = 0, csv_file_path = '/home/zhouxn/project/Torch
                     csv_writer.writerow(result_dict)
                 
 if __name__ == '__main__':
-    test_imagenet(seed = 0, gpu = 0,  csv_file_path = '/home/zhouxn/project/TorchCP/output/experiment_aug_method_seed_0.csv')
-    # test_imagenet(seed = 1, gpu = 1, csv_file_path = '/home/zhouxn/project/TorchCP/output/experiment_aug_method_seed_1.csv')
+    # test_imagenet(seed = 0, gpu = 0,  csv_file_path = '/home/zhouxn/project/TorchCP/output/experiment_autoaug_method_seed_0.csv')
+    test_imagenet(seed = 1, gpu = 1, csv_file_path = '/home/zhouxn/project/TorchCP/output/experiment_autoaug_method_seed_1.csv')
     
