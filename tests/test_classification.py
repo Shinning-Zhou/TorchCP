@@ -5,6 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 #
 
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__name__).resolve().parent))
 
 import argparse
 import os
@@ -42,14 +45,17 @@ def test_imagenet_logits():
 
     else:
         usr_dir = os.path.expanduser('~')
-        data_dir = os.path.join(usr_dir, "data")
-        dataset = dset.ImageFolder(data_dir + "/imagenet/val",
+        # data_dir = os.path.join(usr_dir, "data")
+        data_dir = '/data/dataset'
+        dataset = dset.ImageFolder(data_dir + "/imagenet/images/val",
                                 transform)
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=320, shuffle=False, pin_memory=True)
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=1024, shuffle=False, pin_memory=True, num_workers = 4)
 
         # load model
         model = torchvision.models.resnet101(weights="IMAGENET1K_V1", progress=True)
-
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        model.to(device)
+        
         logits_list = []
         labels_list = []
         with torch.no_grad():
@@ -108,7 +114,7 @@ def test_imagenet():
     #######################################
     model_name = 'ResNet101'
     model = torchvision.models.resnet101(weights="IMAGENET1K_V1", progress=True)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     model.to(device)
     usr_dir = os.path.expanduser('~')
     data_dir = os.path.join(usr_dir, "data")
@@ -132,3 +138,6 @@ def test_imagenet():
             print(predictor.evaluate(test_data_loader))
 
 
+
+if __name__ == '__main__':
+    test_imagenet_logits()

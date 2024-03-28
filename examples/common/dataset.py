@@ -10,8 +10,9 @@ from torch.utils.data import Dataset
 
 def build_dataset(dataset_name, transform=None, mode='train'):
     #  path of usr
-    usr_dir = os.path.expanduser('~')
-    data_dir = os.path.join(usr_dir, "data")
+    # usr_dir = os.path.expanduser('~')
+    # data_dir = os.path.join(usr_dir, "data")
+    data_dir = "/data/dataset"
 
     if dataset_name == 'imagenet':
         if transform is None:
@@ -23,7 +24,7 @@ def build_dataset(dataset_name, transform=None, mode='train'):
                               std=[0.229, 0.224, 0.225])
             ])
 
-        dataset = dset.ImageFolder(data_dir + "/imagenet/val", transform)
+        dataset = dset.ImageFolder(data_dir + "/imagenet/images/val", transform)
     elif dataset_name == 'mnist':
         if transform is None:
             transform = trn.Compose([
