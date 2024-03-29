@@ -42,7 +42,7 @@ class R2CCP(SplitPredictor):
         right_points = midpoints_expanded[:, 1:]
         left_predicts = predicts_batch[:, :-1]
         right_predicts = predicts_batch[:, 1:]
-        q_hat_expanded = torch.ones((predicts_batch.shape[0], predicts_batch.shape[1]-1), device=self._device)* self.q_hat
+        q_hat_expanded = torch.ones((predicts_batch.shape[0], predicts_batch.shape[1]-1), device=self._device) * self.q_hat
 
         mask1 = (left_predicts >= q_hat_expanded) & (right_predicts >= q_hat_expanded)
         mask2 = (left_predicts <= q_hat_expanded) & (right_predicts <= q_hat_expanded)
@@ -51,19 +51,19 @@ class R2CCP(SplitPredictor):
         
         prediction_intervals = torch.zeros((N, 2 * (K - 1)), device=self._device)
         prediction_intervals[:, 0::2][mask1] = left_points[mask1]
-        prediction_intervals[:, 1::2][mask1] =right_points[mask1]
+        prediction_intervals[:, 1::2][mask1] = right_points[mask1]
         prediction_intervals[:, 0::2][mask2] = 0
         prediction_intervals[:, 1::2][mask2] = 0
 
-        delta_midpoints =right_points - left_points
-        prediction_intervals[:, 0::2][mask3] =right_points[mask3] - delta_midpoints[mask3] * \
+        delta_midpoints = right_points - left_points
+        prediction_intervals[:, 0::2][mask3] = right_points[mask3] - delta_midpoints[mask3] * \
             (right_predicts[mask3] - q_hat_expanded[mask3]) / (right_predicts[mask3] - left_predicts[mask3])
-        prediction_intervals[:, 1::2][mask3] =right_points[mask3]
+        prediction_intervals[:, 1::2][mask3] = right_points[mask3]
 
         prediction_intervals[:, 0::2][mask4] = left_points[mask4]
         prediction_intervals[:, 1::2][mask4] = left_points[mask4] - delta_midpoints[mask4] * \
             (left_predicts[mask4] - q_hat_expanded[mask4]) / (right_predicts[mask4] - left_predicts[mask4])
-
+        
         return prediction_intervals
 
     def __find_interval(self, midpoints, y_truth):

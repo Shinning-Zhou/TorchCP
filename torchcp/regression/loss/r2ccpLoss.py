@@ -8,7 +8,7 @@ class R2ccpLoss(nn.Module):
     Paper: https://neurips.cc/virtual/2023/80610
 
     :param p: norm of distance measure.
-    :param tau: weight of the ‘entropy’ term.
+    :param tau: weight of the 'entropy' term.
     :param midpoints: the midpoint of each bin.
     """
 
@@ -32,7 +32,7 @@ class R2ccpLoss(nn.Module):
         target = target.view(-1, 1)
         abs_diff = torch.abs(target - self.midpoints.to(preds.device).unsqueeze(0))
         cross_entropy = torch.sum((abs_diff ** self.p) * preds, dim=1)
-        shannon_entropy = torch.sum(preds * torch.log(preds.clamp_min(1e-10)), dim=1)
+        shannon_entropy = - torch.sum(preds * torch.log(preds.clamp_min(1e-10)), dim=1)
         
         losses = cross_entropy - self.tau * shannon_entropy
         loss = losses.sum()
